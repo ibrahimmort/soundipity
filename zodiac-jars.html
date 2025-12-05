@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zodiac Community Jars</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a8b2d1;
+            font-size: 1.1em;
+        }
+
+        .command-example {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            color: #ffd700;
+            font-family: monospace;
+            font-size: 1em;
+        }
+
+        .jars-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .jar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .jar-label {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 5px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .jar-dates {
+            font-size: 0.75em;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .jar {
+            width: 180px;
+            height: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid;
+            border-radius: 15px 15px 25px 25px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .jar:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
+                        inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .jar-symbol {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2em;
+            opacity: 0.3;
+            z-index: 1;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+        }
+
+        .jar-contents {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 10px;
+            gap: 5px;
+        }
+
+        .star {
+            width: 28px;
+            height: 28px;
+            position: relative;
+            animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), twinkle 2s ease-in-out infinite;
+        }
+
+        .star::before {
+            content: '⭐';
+            font-size: 28px;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.4));
+        }
+
+        @keyframes dropIn {
+            0% {
+                transform: translateY(-300px) rotate(0deg) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0) rotate(360deg) scale(1);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                filter: brightness(1);
+            }
+            50% {
+                filter: brightness(1.3);
+            }
+        }
+
+        .count {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            z-index: 2;
+        }
+
+        .test-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .test-controls h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .test-controls button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .test-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-controls button:active {
+            transform: translateY(0);
+        }
+
+        /* Zodiac-specific colors and styles */
+        .aries { border-color: #ff6b6b; }
+        .aries .jar-label { color: #ff6b6b; }
+        .aries .star::before { color: #ff6b6b; }
+
+        .taurus { border-color: #51cf66; }
+        .taurus .jar-label { color: #51cf66; }
+        .taurus .star::before { color: #51cf66; }
+
+        .gemini { border-color: #ffd43b; }
+        .gemini .jar-label { color: #ffd43b; }
+        .gemini .star::before { color: #ffd43b; }
+
+        .cancer { border-color: #a9e34b; }
+        .cancer .jar-label { color: #a9e34b; }
+        .cancer .star::before { color: #a9e34b; }
+
+        .leo { border-color: #ff922b; }
+        .leo .jar-label { color: #ff922b; }
+        .leo .star::before { color: #ff922b; }
+
+        .virgo { border-color: #8ce99a; }
+        .virgo .jar-label { color: #8ce99a; }
+        .virgo .star::before { color: #8ce99a; }
+
+        .libra { border-color: #ff8787; }
+        .libra .jar-label { color: #ff8787; }
+        .libra .star::before { color: #ff8787; }
+
+        .scorpio { border-color: #cc5de8; }
+        .scorpio .jar-label { color: #cc5de8; }
+        .scorpio .star::before { color: #cc5de8; }
+
+        .sagittarius { border-color: #845ef7; }
+        .sagittarius .jar-label { color: #845ef7; }
+        .sagittarius .star::before { color: #845ef7; }
+
+        .capricorn { border-color: #5c7cfa; }
+        .capricorn .jar-label { color: #5c7cfa; }
+        .capricorn .star::before { color: #5c7cfa; }
+
+        .aquarius { border-color: #22b8cf; }
+        .aquarius .jar-label { color: #22b8cf; }
+        .aquarius .star::before { color: #22b8cf; }
+
+        .pisces { border-color: #91a7ff; }
+        .pisces .jar-label { color: #91a7ff; }
+        .pisces .star::before { color: #91a7ff; }
+
+        @media (max-width: 768px) {
+            .jars-container {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .jar {
+                width: 150px;
+                height: 240px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✨ Zodiac Community ✨</h1>
+        <p>Rep your sign and see which constellation shines brightest tonight!</p>
+        <div class="command-example">Type: !aries or !taurus or !gemini...</div>
+    </div>
+
+    <div class="jars-container" id="jarsContainer"></div>
+
+    <div class="test-controls">
+        <h3>🔮 Test Controls</h3>
+        <button onclick="addRandomSign()">Add Random Sign</button>
+        <button onclick="simulateChat()">Simulate Active Chat (15 stars)</button>
+        <button onclick="clearAll()">Clear All Jars</button>
+    </div>
+
+    <script>
+        const zodiacSigns = [
+            { name: 'Aries', class: 'aries', command: '!aries', symbol: '♈', dates: 'Mar 21 - Apr 19' },
+            { name: 'Taurus', class: 'taurus', command: '!taurus', symbol: '♉', dates: 'Apr 20 - May 20' },
+            { name: 'Gemini', class: 'gemini', command: '!gemini', symbol: '♊', dates: 'May 21 - Jun 20' },
+            { name: 'Cancer', class: 'cancer', command: '!cancer', symbol: '♋', dates: 'Jun 21 - Jul 22' },
+            { name: 'Leo', class: 'leo', command: '!leo', symbol: '♌', dates: 'Jul 23 - Aug 22' },
+            { name: 'Virgo', class: 'virgo', command: '!virgo', symbol: '♍', dates: 'Aug 23 - Sep 22' },
+            { name: 'Libra', class: 'libra', command: '!libra', symbol: '♎', dates: 'Sep 23 - Oct 22' },
+            { name: 'Scorpio', class: 'scorpio', command: '!scorpio', symbol: '♏', dates: 'Oct 23 - Nov 21' },
+            { name: 'Sagittarius', class: 'sagittarius', command: '!sagittarius', symbol: '♐', dates: 'Nov 22 - Dec 21' },
+            { name: 'Capricorn', class: 'capricorn', command: '!capricorn', symbol: '♑', dates: 'Dec 22 - Jan 19' },
+            { name: 'Aquarius', class: 'aquarius', command: '!aquarius', symbol: '♒', dates: 'Jan 20 - Feb 18' },
+            { name: 'Pisces', class: 'pisces', command: '!pisces', symbol: '♓', dates: 'Feb 19 - Mar 20' }
+        ];
+
+        const jarCounts = {};
+
+        // Initialize jars
+        function initializeJars() {
+            const container = document.getElementById('jarsContainer');
+            
+            zodiacSigns.forEach(sign => {
+                jarCounts[sign.class] = 0;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'jar-wrapper';
+                
+                const label = document.createElement('div');
+                label.className = `jar-label ${sign.class}`;
+                label.textContent = sign.name;
+                
+                const dates = document.createElement('div');
+                dates.className = 'jar-dates';
+                dates.textContent = sign.dates;
+                
+                const jar = document.createElement('div');
+                jar.className = `jar ${sign.class}`;
+                jar.id = `jar-${sign.class}`;
+                
+                const symbol = document.createElement('div');
+                symbol.className = 'jar-symbol';
+                symbol.textContent = sign.symbol;
+                
+                const count = document.createElement('div');
+                count.className = 'count';
+                count.id = `count-${sign.class}`;
+                count.textContent = '0';
+                
+                const contents = document.createElement('div');
+                contents.className = 'jar-contents';
+                contents.id = `contents-${sign.class}`;
+                
+                jar.appendChild(symbol);
+                jar.appendChild(count);
+                jar.appendChild(contents);
+                wrapper.appendChild(label);
+                wrapper.appendChild(dates);
+                wrapper.appendChild(jar);
+                container.appendChild(wrapper);
+            });
+        }
+
+        // Add a star to a specific jar
+        function addStar(signClass) {
+            const contents = document.getElementById(`contents-${signClass}`);
+            const count = document.getElementById(`count-${signClass}`);
+            
+            if (!contents) return;
+            
+            const star = document.createElement('div');
+            star.className = 'star';
+            
+            // Add star to the beginning so it appears at top
+            contents.insertBefore(star, contents.firstChild);
+            
+            // Update count
+            jarCounts[signClass]++;
+            count.textContent = jarCounts[signClass];
+            
+            // Remove star after animation to prevent overflow (keep max 20 visible)
+            if (contents.children.length > 20) {
+                setTimeout(() => {
+                    if (contents.lastChild) {
+                        contents.removeChild(contents.lastChild);
+                    }
+                }, 100);
+            }
+        }
+
+        // Process chat command
+        function processChatCommand(message) {
+            const lowerMessage = message.toLowerCase().trim();
+            
+            zodiacSigns.forEach(sign => {
+                if (lowerMessage === sign.command) {
+                    addStar(sign.class);
+                }
+            });
+        }
+
+        // Test functions
+        function addRandomSign() {
+            const randomSign = zodiacSigns[Math.floor(Math.random() * zodiacSigns.length)];
+            addStar(randomSign.class);
+        }
+
+        function simulateChat() {
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    addRandomSign();
+                }, i * 200);
+            }
+        }
+
+        function clearAll() {
+            zodiacSigns.forEach(sign => {
+                const contents = document.getElementById(`contents-${sign.class}`);
+                const count = document.getElementById(`count-${sign.class}`);
+                contents.innerHTML = '';
+                jarCounts[sign.class] = 0;
+                count.textContent = '0';
+            });
+        }
+
+        // Initialize on load
+        initializeJars();
+
+        // INTEGRATION INSTRUCTIONS FOR TWITCH/YOUTUBE:
+        // 
+        // For Twitch (using tmi.js):
+        // const tmi = require('tmi.js');
+        // const client = new tmi.Client({
+        //     channels: ['your_channel']
+        // });
+        // client.connect();
+        // client.on('message', (channel, tags, message, self) => {
+        //     processChatCommand(message);
+        // });
+        //
+        // For YouTube (using youtube-chat):
+        // Or use OBS Browser Source with a WebSocket server
+        // Send messages to this page via window.processChatCommand(message)
+        
+        // Expose function for external integration
+        window.processChatCommand = processChatCommand;
+        
+        // Example: simulate external message
+        // window.processChatCommand('!leo');
+    </script>
+</body>
+</html>

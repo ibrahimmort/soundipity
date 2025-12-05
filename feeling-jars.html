@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collective Feelings Jars</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a8b2d1;
+            font-size: 1.1em;
+        }
+
+        .command-example {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            color: #64ffda;
+            font-family: monospace;
+            font-size: 1em;
+        }
+
+        .jars-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 25px;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .jar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .jar-label {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .jar {
+            width: 180px;
+            height: 280px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 3px solid;
+            border-radius: 15px 15px 25px 25px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                        inset 0 0 20px rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .jar:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4),
+                        inset 0 0 30px rgba(255, 255, 255, 0.1);
+        }
+
+        .jar-contents {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 10px;
+            gap: 5px;
+        }
+
+        .ball {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3),
+                        inset -3px -3px 8px rgba(0, 0, 0, 0.2),
+                        inset 3px 3px 8px rgba(255, 255, 255, 0.3);
+            animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            position: relative;
+        }
+
+        @keyframes dropIn {
+            0% {
+                transform: translateY(-300px) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .ball::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            width: 10px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            filter: blur(2px);
+        }
+
+        .count {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .test-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .test-controls h3 {
+            color: #64ffda;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .test-controls button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .test-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-controls button:active {
+            transform: translateY(0);
+        }
+
+        /* Feeling-specific colors */
+        .uplifting { border-color: #ffd700; }
+        .uplifting .jar-label { color: #ffd700; }
+        .uplifting .ball { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); }
+
+        .melancholic { border-color: #6b8cce; }
+        .melancholic .jar-label { color: #6b8cce; }
+        .melancholic .ball { background: linear-gradient(135deg, #6b8cce 0%, #8ba8db 100%); }
+
+        .energetic { border-color: #ff4757; }
+        .energetic .jar-label { color: #ff4757; }
+        .energetic .ball { background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%); }
+
+        .chill { border-color: #7bed9f; }
+        .chill .jar-label { color: #7bed9f; }
+        .chill .ball { background: linear-gradient(135deg, #7bed9f 0%, #a8f5c5 100%); }
+
+        .nostalgic { border-color: #dda15e; }
+        .nostalgic .jar-label { color: #dda15e; }
+        .nostalgic .ball { background: linear-gradient(135deg, #dda15e 0%, #e8b788 100%); }
+
+        .dark { border-color: #5f27cd; }
+        .dark .jar-label { color: #5f27cd; }
+        .dark .ball { background: linear-gradient(135deg, #5f27cd 0%, #7c4ddb 100%); }
+
+        .romantic { border-color: #ff6b9d; }
+        .romantic .jar-label { color: #ff6b9d; }
+        .romantic .ball { background: linear-gradient(135deg, #ff6b9d 0%, #ff8db8 100%); }
+
+        .playful { border-color: #ffa502; }
+        .playful .jar-label { color: #ffa502; }
+        .playful .ball { background: linear-gradient(135deg, #ffa502 0%, #ffb833 100%); }
+
+        .epic { border-color: #c44569; }
+        .epic .jar-label { color: #c44569; }
+        .epic .ball { background: linear-gradient(135deg, #c44569 0%, #d6668c 100%); }
+
+        .dreamy { border-color: #a29bfe; }
+        .dreamy .jar-label { color: #a29bfe; }
+        .dreamy .ball { background: linear-gradient(135deg, #a29bfe 0%, #bfb9fe 100%); }
+
+        .rebellious { border-color: #ee5a6f; }
+        .rebellious .jar-label { color: #ee5a6f; }
+        .rebellious .ball { background: linear-gradient(135deg, #ee5a6f 0%, #f27b8d 100%); }
+
+        .empowering { border-color: #00d2d3; }
+        .empowering .jar-label { color: #00d2d3; }
+        .empowering .ball { background: linear-gradient(135deg, #00d2d3 0%, #33dfe0 100%); }
+
+        @media (max-width: 768px) {
+            .jars-container {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+                gap: 15px;
+            }
+
+            .jar {
+                width: 150px;
+                height: 240px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✨ Collective Feelings Jars ✨</h1>
+        <p>Share how you're feeling and watch the jars fill with our collective emotions</p>
+        <div class="command-example">Type: !uplifting or !melancholic or !energetic...</div>
+    </div>
+
+    <div class="jars-container" id="jarsContainer"></div>
+
+    <div class="test-controls">
+        <h3>🧪 Test Controls</h3>
+        <button onclick="addRandomFeeling()">Add Random Feeling</button>
+        <button onclick="simulateChat()">Simulate Active Chat (10 drops)</button>
+        <button onclick="clearAll()">Clear All Jars</button>
+    </div>
+
+    <script>
+        const feelings = [
+            { name: 'Uplifting', class: 'uplifting', command: '!uplifting' },
+            { name: 'Melancholic', class: 'melancholic', command: '!melancholic' },
+            { name: 'Energetic', class: 'energetic', command: '!energetic' },
+            { name: 'Chill', class: 'chill', command: '!chill' },
+            { name: 'Nostalgic', class: 'nostalgic', command: '!nostalgic' },
+            { name: 'Dark', class: 'dark', command: '!dark' },
+            { name: 'Romantic', class: 'romantic', command: '!romantic' },
+            { name: 'Playful', class: 'playful', command: '!playful' },
+            { name: 'Epic', class: 'epic', command: '!epic' },
+            { name: 'Dreamy', class: 'dreamy', command: '!dreamy' },
+            { name: 'Rebellious', class: 'rebellious', command: '!rebellious' },
+            { name: 'Empowering', class: 'empowering', command: '!empowering' }
+        ];
+
+        const jarCounts = {};
+
+        // Initialize jars
+        function initializeJars() {
+            const container = document.getElementById('jarsContainer');
+            
+            feelings.forEach(feeling => {
+                jarCounts[feeling.class] = 0;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'jar-wrapper';
+                
+                const label = document.createElement('div');
+                label.className = `jar-label ${feeling.class}`;
+                label.textContent = feeling.name;
+                
+                const jar = document.createElement('div');
+                jar.className = `jar ${feeling.class}`;
+                jar.id = `jar-${feeling.class}`;
+                
+                const count = document.createElement('div');
+                count.className = 'count';
+                count.id = `count-${feeling.class}`;
+                count.textContent = '0';
+                
+                const contents = document.createElement('div');
+                contents.className = 'jar-contents';
+                contents.id = `contents-${feeling.class}`;
+                
+                jar.appendChild(count);
+                jar.appendChild(contents);
+                wrapper.appendChild(label);
+                wrapper.appendChild(jar);
+                container.appendChild(wrapper);
+            });
+        }
+
+        // Add a ball to a specific jar
+        function addBall(feelingClass) {
+            const contents = document.getElementById(`contents-${feelingClass}`);
+            const count = document.getElementById(`count-${feelingClass}`);
+            
+            if (!contents) return;
+            
+            const ball = document.createElement('div');
+            ball.className = 'ball';
+            
+            // Add ball to the beginning so it appears at top
+            contents.insertBefore(ball, contents.firstChild);
+            
+            // Update count
+            jarCounts[feelingClass]++;
+            count.textContent = jarCounts[feelingClass];
+            
+            // Remove ball after animation to prevent overflow (keep max 20 visible)
+            if (contents.children.length > 20) {
+                setTimeout(() => {
+                    if (contents.lastChild) {
+                        contents.removeChild(contents.lastChild);
+                    }
+                }, 100);
+            }
+        }
+
+        // Process chat command
+        function processChatCommand(message) {
+            const lowerMessage = message.toLowerCase().trim();
+            
+            feelings.forEach(feeling => {
+                if (lowerMessage === feeling.command) {
+                    addBall(feeling.class);
+                }
+            });
+        }
+
+        // Test functions
+        function addRandomFeeling() {
+            const randomFeeling = feelings[Math.floor(Math.random() * feelings.length)];
+            addBall(randomFeeling.class);
+        }
+
+        function simulateChat() {
+            for (let i = 0; i < 10; i++) {
+                setTimeout(() => {
+                    addRandomFeeling();
+                }, i * 300);
+            }
+        }
+
+        function clearAll() {
+            feelings.forEach(feeling => {
+                const contents = document.getElementById(`contents-${feeling.class}`);
+                const count = document.getElementById(`count-${feeling.class}`);
+                contents.innerHTML = '';
+                jarCounts[feeling.class] = 0;
+                count.textContent = '0';
+            });
+        }
+
+        // Initialize on load
+        initializeJars();
+
+        // INTEGRATION INSTRUCTIONS FOR TWITCH/YOUTUBE:
+        // 
+        // For Twitch (using tmi.js):
+        // const tmi = require('tmi.js');
+        // const client = new tmi.Client({
+        //     channels: ['your_channel']
+        // });
+        // client.connect();
+        // client.on('message', (channel, tags, message, self) => {
+        //     processChatCommand(message);
+        // });
+        //
+        // For YouTube (using youtube-chat):
+        // Or use OBS Browser Source with a WebSocket server
+        // Send messages to this page via window.processChatCommand(message)
+        
+        // Expose function for external integration
+        window.processChatCommand = processChatCommand;
+        
+        // Example: simulate external message
+        // window.processChatCommand('!uplifting');
+    </script>
+</body>
+</html>

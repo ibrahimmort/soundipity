@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connection Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: white;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            color: #667eea;
+        }
+        
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .test-section h2 {
+            color: #27ae60;
+            margin-bottom: 15px;
+        }
+        
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: scale(1.05);
+        }
+        
+        .log {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+        
+        .log-entry {
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .success {
+            color: #27ae60;
+        }
+        
+        .info {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔌 Dashboard ↔️ Widgets Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>Instructions:</h2>
+        <ol>
+            <li>Open <strong>control-dashboard.html</strong> in another tab</li>
+            <li>Open <strong>stream-grid-overlay.html</strong> in another tab</li>
+            <li>Click buttons below OR use the dashboard</li>
+            <li>Watch the log below and check if widgets respond!</li>
+        </ol>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Commands:</h2>
+        <button onclick="testFeeling()">Test Feelings Jar</button>
+        <button onclick="testZodiac()">Test Zodiac Jar</button>
+        <button onclick="testRoles()">Test Creative Roles</button>
+        <button onclick="testTrivia()">Test Trivia Vote</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <div class="test-section">
+        <h2>📋 Command Log:</h2>
+        <div class="log" id="log">
+            <div class="log-entry info">Waiting for commands...</div>
+        </div>
+    </div>
+
+    <script>
+        let commandCount = 0;
+        
+        // Listen for commands
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'streamCommand') {
+                try {
+                    const command = JSON.parse(e.newValue);
+                    logCommand(command);
+                } catch (err) {
+                    logError('Error parsing command: ' + err);
+                }
+            }
+        });
+        
+        function logCommand(command) {
+            commandCount++;
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry success';
+            entry.textContent = `#${commandCount} [${command.widget}] ${command.command} → ${JSON.stringify(command.data)}`;
+            log.insertBefore(entry, log.firstChild);
+        }
+        
+        function logError(message) {
+            const log = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.style.color = '#e74c3c';
+            entry.textContent = message;
+            log.insertBefore(entry, log.firstChild);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '<div class="log-entry info">Log cleared...</div>';
+            commandCount = 0;
+        }
+        
+        // Test functions
+        function testFeeling() {
+            const command = {
+                widget: 'feelings',
+                command: 'add',
+                data: 'uplifting',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('streamCommand', JSON.stringify(command));
+            logCommand(command);
+        }
+        
+        function testZodiac() {
+            const command = {
+                widget: 'zodiac',
+                command: 'add',
+                data: 'leo',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('streamCommand', JSON.stringify(command));
+            logCommand(command);
+        }
+        
+        function testRoles() {
+            const command = {
+                widget: 'roles',
+                command: 'add',
+                data: 'artist',
+                timestamp: Date.now()
+            };
+            localStorage.setItem('streamCommand', JSON.stringify(command));
+            logCommand(command);
+        }
+        
+        function testTrivia() {
+            const command = {
+                widget: 'trivia',
+                command: 'vote',
+                data: 1,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('streamCommand', JSON.stringify(command));
+            logCommand(command);
+        }
+    </script>
+</body>
+</html>

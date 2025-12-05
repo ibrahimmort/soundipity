@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Roles Community</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 2.5em;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a8b2d1;
+            font-size: 1.1em;
+        }
+
+        .command-example {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-top: 10px;
+            color: #bb86fc;
+            font-family: monospace;
+            font-size: 1em;
+        }
+
+        .jars-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .jar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .jar-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .role-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3em;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+
+        .jar-label {
+            font-size: 1.2em;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 0.5px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .jar {
+            width: 200px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 3px solid;
+            border-radius: 15px 15px 30px 30px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+                        inset 0 0 20px rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .jar:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5),
+                        inset 0 0 30px rgba(255, 255, 255, 0.08);
+        }
+
+        .jar-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            opacity: 0.1;
+            pointer-events: none;
+            background: radial-gradient(circle at center, currentColor 0%, transparent 70%);
+        }
+
+        .jar-contents {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 15px;
+            gap: 6px;
+        }
+
+        .orb {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            position: relative;
+            animation: dropIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4),
+                        inset -3px -3px 8px rgba(0, 0, 0, 0.3),
+                        inset 3px 3px 8px rgba(255, 255, 255, 0.2);
+        }
+
+        .orb::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 8px;
+            width: 12px;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            filter: blur(3px);
+        }
+
+        .orb::after {
+            content: attr(data-icon);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+
+        @keyframes dropIn {
+            0% {
+                transform: translateY(-350px) scale(0.3) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            70% {
+                transform: translateY(10px) scale(1.05) rotate(180deg);
+            }
+            100% {
+                transform: translateY(0) scale(1) rotate(360deg);
+            }
+        }
+
+        .count {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 1em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+            z-index: 2;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .test-controls {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .test-controls h3 {
+            color: #bb86fc;
+            margin-bottom: 15px;
+            font-size: 1em;
+        }
+
+        .test-controls button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .test-controls button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .test-controls button:active {
+            transform: translateY(0);
+        }
+
+        /* Role-specific colors */
+        .hitmaker { border-color: #9b59b6; }
+        .hitmaker .jar-label { color: #9b59b6; }
+        .hitmaker .role-icon { background: #9b59b6; color: white; }
+        .hitmaker .orb { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+        .hitmaker .jar-glow { color: #9b59b6; }
+
+        .listener { border-color: #3498db; }
+        .listener .jar-label { color: #3498db; }
+        .listener .role-icon { background: #3498db; color: white; }
+        .listener .orb { background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); }
+        .listener .jar-glow { color: #3498db; }
+
+        .author { border-color: #e67e22; }
+        .author .jar-label { color: #e67e22; }
+        .author .role-icon { background: #e67e22; color: white; }
+        .author .orb { background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); }
+        .author .jar-glow { color: #e67e22; }
+
+        .voiceartist { border-color: #1abc9c; }
+        .voiceartist .jar-label { color: #1abc9c; }
+        .voiceartist .role-icon { background: #1abc9c; color: white; }
+        .voiceartist .orb { background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%); }
+        .voiceartist .jar-glow { color: #1abc9c; }
+
+        .reader { border-color: #e74c3c; }
+        .reader .jar-label { color: #e74c3c; }
+        .reader .role-icon { background: #e74c3c; color: white; }
+        .reader .orb { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+        .reader .jar-glow { color: #e74c3c; }
+
+        .artist { border-color: #2ecc71; }
+        .artist .jar-label { color: #2ecc71; }
+        .artist .role-icon { background: #2ecc71; color: white; }
+        .artist .orb { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+        .artist .jar-glow { color: #2ecc71; }
+
+        @media (max-width: 768px) {
+            .jars-container {
+                grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+                gap: 20px;
+            }
+
+            .jar {
+                width: 180px;
+                height: 270px;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎨 Creative Roles Community 🎨</h1>
+        <p>Which creative role do you identify with? Find your tribe!</p>
+        <div class="command-example">Type: !hitmaker or !listener or !author...</div>
+    </div>
+
+    <div class="jars-container" id="jarsContainer"></div>
+
+    <div class="test-controls">
+        <h3>🎭 Test Controls</h3>
+        <button onclick="addRandomRole()">Add Random Role</button>
+        <button onclick="simulateChat()">Simulate Active Chat (12 orbs)</button>
+        <button onclick="clearAll()">Clear All Jars</button>
+    </div>
+
+    <script>
+        const creativeRoles = [
+            { name: 'Hitmaker', class: 'hitmaker', command: '!hitmaker', icon: '🎵' },
+            { name: 'Listener', class: 'listener', command: '!listener', icon: '🎧' },
+            { name: 'Author', class: 'author', command: '!author', icon: '✍️' },
+            { name: 'Voice Artist', class: 'voiceartist', command: '!voiceartist', icon: '🎙️' },
+            { name: 'Reader', class: 'reader', command: '!reader', icon: '📚' },
+            { name: 'Artist', class: 'artist', command: '!artist', icon: '🎨' }
+        ];
+
+        const jarCounts = {};
+
+        // Initialize jars
+        function initializeJars() {
+            const container = document.getElementById('jarsContainer');
+            
+            creativeRoles.forEach(role => {
+                jarCounts[role.class] = 0;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'jar-wrapper';
+                
+                const header = document.createElement('div');
+                header.className = 'jar-header';
+                
+                const icon = document.createElement('div');
+                icon.className = `role-icon ${role.class}`;
+                icon.textContent = role.icon;
+                
+                const label = document.createElement('div');
+                label.className = `jar-label ${role.class}`;
+                label.textContent = role.name;
+                
+                header.appendChild(icon);
+                header.appendChild(label);
+                
+                const jar = document.createElement('div');
+                jar.className = `jar ${role.class}`;
+                jar.id = `jar-${role.class}`;
+                
+                const glow = document.createElement('div');
+                glow.className = 'jar-glow';
+                
+                const count = document.createElement('div');
+                count.className = 'count';
+                count.id = `count-${role.class}`;
+                count.textContent = '0';
+                
+                const contents = document.createElement('div');
+                contents.className = 'jar-contents';
+                contents.id = `contents-${role.class}`;
+                
+                jar.appendChild(glow);
+                jar.appendChild(count);
+                jar.appendChild(contents);
+                wrapper.appendChild(header);
+                wrapper.appendChild(jar);
+                container.appendChild(wrapper);
+            });
+        }
+
+        // Add an orb to a specific jar
+        function addOrb(roleClass) {
+            const contents = document.getElementById(`contents-${roleClass}`);
+            const count = document.getElementById(`count-${roleClass}`);
+            
+            if (!contents) return;
+            
+            const role = creativeRoles.find(r => r.class === roleClass);
+            
+            const orb = document.createElement('div');
+            orb.className = 'orb';
+            orb.setAttribute('data-icon', role.icon);
+            
+            // Add orb to the beginning so it appears at top
+            contents.insertBefore(orb, contents.firstChild);
+            
+            // Update count
+            jarCounts[roleClass]++;
+            count.textContent = jarCounts[roleClass];
+            
+            // Remove orb after animation to prevent overflow (keep max 18 visible)
+            if (contents.children.length > 18) {
+                setTimeout(() => {
+                    if (contents.lastChild) {
+                        contents.removeChild(contents.lastChild);
+                    }
+                }, 100);
+            }
+        }
+
+        // Process chat command
+        function processChatCommand(message) {
+            const lowerMessage = message.toLowerCase().trim();
+            
+            creativeRoles.forEach(role => {
+                if (lowerMessage === role.command) {
+                    addOrb(role.class);
+                }
+            });
+        }
+
+        // Test functions
+        function addRandomRole() {
+            const randomRole = creativeRoles[Math.floor(Math.random() * creativeRoles.length)];
+            addOrb(randomRole.class);
+        }
+
+        function simulateChat() {
+            for (let i = 0; i < 12; i++) {
+                setTimeout(() => {
+                    addRandomRole();
+                }, i * 250);
+            }
+        }
+
+        function clearAll() {
+            creativeRoles.forEach(role => {
+                const contents = document.getElementById(`contents-${role.class}`);
+                const count = document.getElementById(`count-${role.class}`);
+                contents.innerHTML = '';
+                jarCounts[role.class] = 0;
+                count.textContent = '0';
+            });
+        }
+
+        // Initialize on load
+        initializeJars();
+
+        // INTEGRATION INSTRUCTIONS FOR TWITCH/YOUTUBE:
+        // 
+        // For Twitch (using tmi.js):
+        // const tmi = require('tmi.js');
+        // const client = new tmi.Client({
+        //     channels: ['your_channel']
+        // });
+        // client.connect();
+        // client.on('message', (channel, tags, message, self) => {
+        //     processChatCommand(message);
+        // });
+        //
+        // For YouTube (using youtube-chat):
+        // Or use OBS Browser Source with a WebSocket server
+        // Send messages to this page via window.processChatCommand(message)
+        
+        // Expose function for external integration
+        window.processChatCommand = processChatCommand;
+        
+        // Example: simulate external message
+        // window.processChatCommand('!artist');
+    </script>
+</body>
+</html>
