@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Control Dashboard</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: white;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #a8b2d1;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #27ae60;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .control-panel {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+        }
+
+        .control-panel h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-panel h2 span {
+            font-size: 1.3em;
+        }
+
+        .control-section {
+            margin-bottom: 20px;
+        }
+
+        .control-section h3 {
+            font-size: 1em;
+            color: #a8b2d1;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Button color schemes */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .control-input {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1em;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .control-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .quick-actions {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .quick-actions h2 {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .stats {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9em;
+        }
+
+        .stats-label {
+            color: #a8b2d1;
+        }
+
+        .stats-value {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎛️ Stream Control Dashboard</h1>
+        <p>Master control for all interactive widgets</p>
+    </div>
+
+    <div class="status-bar">
+        <div class="status-item">
+            <div class="status-indicator"></div>
+            <span>Dashboard Active</span>
+        </div>
+        <div class="status-item">
+            <span>Commands sent: <strong id="commandCount">0</strong></span>
+        </div>
+        <div class="status-item">
+            <span id="currentTime">--:--:--</span>
+        </div>
+    </div>
+
+    <div class="quick-actions">
+        <h2>⚡ Quick Actions</h2>
+        <div class="quick-grid">
+            <button class="control-btn btn-success" onclick="simulateAllChat()">Simulate ALL Widgets</button>
+            <button class="control-btn btn-danger" onclick="clearAllWidgets()">Clear ALL Widgets</button>
+            <button class="control-btn btn-warning" onclick="testAllRandom()">Random Test All</button>
+        </div>
+    </div>
+
+    <div class="dashboard-grid">
+        <!-- Feelings Jars Control -->
+        <div class="control-panel">
+            <h2><span>💭</span> Feelings Jars</h2>
+            
+            <div class="control-section">
+                <h3>Manual Control</h3>
+                <div class="input-group">
+                    <select class="control-input" id="feelingSelect">
+                        <option value="uplifting">Uplifting</option>
+                        <option value="melancholic">Melancholic</option>
+                        <option value="energetic">Energetic</option>
+                        <option value="chill">Chill</option>
+                        <option value="nostalgic">Nostalgic</option>
+                        <option value="dark">Dark</option>
+                        <option value="romantic">Romantic</option>
+                        <option value="playful">Playful</option>
+                        <option value="epic">Epic</option>
+                        <option value="dreamy">Dreamy</option>
+                        <option value="rebellious">Rebellious</option>
+                        <option value="empowering">Empowering</option>
+                    </select>
+                    <button class="control-btn btn-primary" onclick="addFeeling()">Add Feeling</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Automation</h3>
+                <div class="button-group">
+                    <button class="control-btn btn-success" onclick="simulateFeelings()">Simulate Chat (10 drops)</button>
+                    <button class="control-btn btn-danger" onclick="clearFeelings()">Clear All Jars</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stats-row">
+                    <span class="stats-label">Total Feelings:</span>
+                    <span class="stats-value" id="feelingsTotal">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Zodiac Jars Control -->
+        <div class="control-panel">
+            <h2><span>⭐</span> Zodiac Jars</h2>
+            
+            <div class="control-section">
+                <h3>Manual Control</h3>
+                <div class="input-group">
+                    <select class="control-input" id="zodiacSelect">
+                        <option value="aries">Aries</option>
+                        <option value="taurus">Taurus</option>
+                        <option value="gemini">Gemini</option>
+                        <option value="cancer">Cancer</option>
+                        <option value="leo">Leo</option>
+                        <option value="virgo">Virgo</option>
+                        <option value="libra">Libra</option>
+                        <option value="scorpio">Scorpio</option>
+                        <option value="sagittarius">Sagittarius</option>
+                        <option value="capricorn">Capricorn</option>
+                        <option value="aquarius">Aquarius</option>
+                        <option value="pisces">Pisces</option>
+                    </select>
+                    <button class="control-btn btn-primary" onclick="addZodiac()">Add Sign</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Automation</h3>
+                <div class="button-group">
+                    <button class="control-btn btn-success" onclick="simulateZodiac()">Simulate Chat (15 stars)</button>
+                    <button class="control-btn btn-danger" onclick="clearZodiac()">Clear All Jars</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stats-row">
+                    <span class="stats-label">Total Signs:</span>
+                    <span class="stats-value" id="zodiacTotal">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Creative Roles Control -->
+        <div class="control-panel">
+            <h2><span>🎨</span> Creative Roles</h2>
+            
+            <div class="control-section">
+                <h3>Manual Control</h3>
+                <div class="input-group">
+                    <select class="control-input" id="roleSelect">
+                        <option value="hitmaker">Hitmaker</option>
+                        <option value="listener">Listener</option>
+                        <option value="author">Author</option>
+                        <option value="voiceartist">Voice Artist</option>
+                        <option value="reader">Reader</option>
+                        <option value="artist">Artist</option>
+                    </select>
+                    <button class="control-btn btn-primary" onclick="addRole()">Add Role</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Automation</h3>
+                <div class="button-group">
+                    <button class="control-btn btn-success" onclick="simulateRoles()">Simulate Chat (12 orbs)</button>
+                    <button class="control-btn btn-danger" onclick="clearRoles()">Clear All Jars</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stats-row">
+                    <span class="stats-label">Total Roles:</span>
+                    <span class="stats-value" id="rolesTotal">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trivia Control -->
+        <div class="control-panel">
+            <h2><span>🎮</span> Trivia Showdown</h2>
+            
+            <div class="control-section">
+                <h3>Game Control</h3>
+                <div class="button-group">
+                    <button class="control-btn btn-success" onclick="generateTriviaTopics()">Generate New Topics</button>
+                    <button class="control-btn btn-primary" onclick="simulateTriviaVotes()">Simulate Votes (15)</button>
+                    <button class="control-btn btn-warning" onclick="simulateTriviaAnswers()">Simulate Answers (15)</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Manual Vote</h3>
+                <div class="input-group">
+                    <input type="number" class="control-input" id="voteNumber" min="1" max="8" placeholder="Topic # (1-8)">
+                    <button class="control-btn btn-primary" onclick="voteTopic()">Vote</button>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <h3>Manual Answer</h3>
+                <div class="input-group">
+                    <select class="control-input" id="answerSelect">
+                        <option value="a">A</option>
+                        <option value="b">B</option>
+                        <option value="c">C</option>
+                        <option value="d">D</option>
+                    </select>
+                    <button class="control-btn btn-primary" onclick="answerQuestion()">Answer</button>
+                </div>
+            </div>
+
+            <div class="stats">
+                <div class="stats-row">
+                    <span class="stats-label">Game State:</span>
+                    <span class="stats-value" id="triviaState">Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let commandCount = 0;
+
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString();
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // Send command to overlay
+        function sendToOverlay(widgetName, command, data) {
+            commandCount++;
+            document.getElementById('commandCount').textContent = commandCount;
+            
+            // Create command object
+            const commandObj = {
+                widget: widgetName,
+                command: command,
+                data: data,
+                timestamp: Date.now()
+            };
+            
+            // Send via localStorage
+            localStorage.setItem('streamCommand', JSON.stringify(commandObj));
+            
+            // Log for debugging
+            console.log(`[${widgetName}] ${command}:`, data);
+            
+            // Visual feedback
+            const statusBar = document.querySelector('.status-bar');
+            statusBar.style.background = 'rgba(46, 204, 113, 0.3)';
+            setTimeout(() => {
+                statusBar.style.background = 'rgba(0, 0, 0, 0.3)';
+            }, 200);
+        }
+
+        // Feelings Jars Controls
+        function addFeeling() {
+            const feeling = document.getElementById('feelingSelect').value;
+            sendToOverlay('feelings', 'add', feeling);
+        }
+
+        function simulateFeelings() {
+            sendToOverlay('feelings', 'simulate', { count: 10 });
+        }
+
+        function clearFeelings() {
+            sendToOverlay('feelings', 'clear', null);
+        }
+
+        // Zodiac Controls
+        function addZodiac() {
+            const sign = document.getElementById('zodiacSelect').value;
+            sendToOverlay('zodiac', 'add', sign);
+        }
+
+        function simulateZodiac() {
+            sendToOverlay('zodiac', 'simulate', { count: 15 });
+        }
+
+        function clearZodiac() {
+            sendToOverlay('zodiac', 'clear', null);
+        }
+
+        // Creative Roles Controls
+        function addRole() {
+            const role = document.getElementById('roleSelect').value;
+            sendToOverlay('roles', 'add', role);
+        }
+
+        function simulateRoles() {
+            sendToOverlay('roles', 'simulate', { count: 12 });
+        }
+
+        function clearRoles() {
+            sendToOverlay('roles', 'clear', null);
+        }
+
+        // Trivia Controls
+        function generateTriviaTopics() {
+            sendToOverlay('trivia', 'generateTopics', null);
+        }
+
+        function simulateTriviaVotes() {
+            sendToOverlay('trivia', 'simulateVotes', { count: 15 });
+        }
+
+        function simulateTriviaAnswers() {
+            sendToOverlay('trivia', 'simulateAnswers', { count: 15 });
+        }
+
+        function voteTopic() {
+            const voteNum = document.getElementById('voteNumber').value;
+            if (voteNum >= 1 && voteNum <= 8) {
+                sendToOverlay('trivia', 'vote', voteNum);
+            }
+        }
+
+        function answerQuestion() {
+            const answer = document.getElementById('answerSelect').value;
+            sendToOverlay('trivia', 'answer', answer);
+        }
+
+        // Quick Actions
+        function simulateAllChat() {
+            simulateFeelings();
+            setTimeout(() => simulateZodiac(), 500);
+            setTimeout(() => simulateRoles(), 1000);
+            setTimeout(() => simulateTriviaVotes(), 1500);
+        }
+
+        function clearAllWidgets() {
+            clearFeelings();
+            clearZodiac();
+            clearRoles();
+        }
+
+        function testAllRandom() {
+            addFeeling();
+            setTimeout(() => addZodiac(), 200);
+            setTimeout(() => addRole(), 400);
+            setTimeout(() => voteTopic(), 600);
+        }
+    </script>
+</body>
+</html>

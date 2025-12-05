@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feelings Jars - Compact</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 8px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .header h1 {
+            color: #ffffff;
+            font-size: 1.2em;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+            margin-bottom: 3px;
+        }
+
+        .header p {
+            color: #a8b2d1;
+            font-size: 0.65em;
+        }
+
+        .jars-container {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .jar-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 0;
+        }
+
+        .jar-label {
+            font-size: 0.55em;
+            font-weight: 600;
+            margin-bottom: 3px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .jar {
+            width: 100%;
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid;
+            border-radius: 8px 8px 12px 12px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .jar-contents {
+            position: absolute;
+            bottom: 5px;
+            left: 5px;
+            right: 5px;
+            top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-end;
+            gap: 3px;
+        }
+
+        .ball {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4),
+                        inset -2px -2px 4px rgba(0, 0, 0, 0.3),
+                        inset 2px 2px 4px rgba(255, 255, 255, 0.3);
+            animation: dropIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            flex-shrink: 0;
+        }
+
+        .ball::before {
+            content: '';
+            position: absolute;
+            top: 3px;
+            left: 4px;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            filter: blur(1px);
+        }
+
+        @keyframes dropIn {
+            0% {
+                transform: translateY(-150px) scale(0.3);
+                opacity: 0;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .count {
+            position: absolute;
+            top: 3px;
+            right: 3px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.6em;
+        }
+
+        /* Feeling-specific colors */
+        .uplifting { border-color: #ffd700; }
+        .uplifting .jar-label { color: #ffd700; }
+        .uplifting .ball { background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%); }
+
+        .melancholic { border-color: #6b8cce; }
+        .melancholic .jar-label { color: #6b8cce; }
+        .melancholic .ball { background: linear-gradient(135deg, #6b8cce 0%, #8ba8db 100%); }
+
+        .energetic { border-color: #ff4757; }
+        .energetic .jar-label { color: #ff4757; }
+        .energetic .ball { background: linear-gradient(135deg, #ff4757 0%, #ff6b7a 100%); }
+
+        .chill { border-color: #7bed9f; }
+        .chill .jar-label { color: #7bed9f; }
+        .chill .ball { background: linear-gradient(135deg, #7bed9f 0%, #a8f5c5 100%); }
+
+        .nostalgic { border-color: #dda15e; }
+        .nostalgic .jar-label { color: #dda15e; }
+        .nostalgic .ball { background: linear-gradient(135deg, #dda15e 0%, #e8b788 100%); }
+
+        .dark { border-color: #5f27cd; }
+        .dark .jar-label { color: #5f27cd; }
+        .dark .ball { background: linear-gradient(135deg, #5f27cd 0%, #7c4ddb 100%); }
+
+        .romantic { border-color: #ff6b9d; }
+        .romantic .jar-label { color: #ff6b9d; }
+        .romantic .ball { background: linear-gradient(135deg, #ff6b9d 0%, #ff8db8 100%); }
+
+        .playful { border-color: #ffa502; }
+        .playful .jar-label { color: #ffa502; }
+        .playful .ball { background: linear-gradient(135deg, #ffa502 0%, #ffb833 100%); }
+
+        .epic { border-color: #c44569; }
+        .epic .jar-label { color: #c44569; }
+        .epic .ball { background: linear-gradient(135deg, #c44569 0%, #d6668c 100%); }
+
+        .dreamy { border-color: #a29bfe; }
+        .dreamy .jar-label { color: #a29bfe; }
+        .dreamy .ball { background: linear-gradient(135deg, #a29bfe 0%, #bfb9fe 100%); }
+
+        .rebellious { border-color: #ee5a6f; }
+        .rebellious .jar-label { color: #ee5a6f; }
+        .rebellious .ball { background: linear-gradient(135deg, #ee5a6f 0%, #f27b8d 100%); }
+
+        .empowering { border-color: #00d2d3; }
+        .empowering .jar-label { color: #00d2d3; }
+        .empowering .ball { background: linear-gradient(135deg, #00d2d3 0%, #33dfe0 100%); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>✨ Collective Feelings ✨</h1>
+        <p>Type: !uplifting or !melancholic or !energetic...</p>
+    </div>
+
+    <div class="jars-container" id="jarsContainer"></div>
+
+    <script>
+        const feelings = [
+            { name: 'Uplifting', class: 'uplifting', command: '!uplifting' },
+            { name: 'Melancholic', class: 'melancholic', command: '!melancholic' },
+            { name: 'Energetic', class: 'energetic', command: '!energetic' },
+            { name: 'Chill', class: 'chill', command: '!chill' },
+            { name: 'Nostalgic', class: 'nostalgic', command: '!nostalgic' },
+            { name: 'Dark', class: 'dark', command: '!dark' },
+            { name: 'Romantic', class: 'romantic', command: '!romantic' },
+            { name: 'Playful', class: 'playful', command: '!playful' },
+            { name: 'Epic', class: 'epic', command: '!epic' },
+            { name: 'Dreamy', class: 'dreamy', command: '!dreamy' },
+            { name: 'Rebellious', class: 'rebellious', command: '!rebellious' },
+            { name: 'Empowering', class: 'empowering', command: '!empowering' }
+        ];
+
+        const jarCounts = {};
+
+        function initializeJars() {
+            const container = document.getElementById('jarsContainer');
+            
+            feelings.forEach(feeling => {
+                jarCounts[feeling.class] = 0;
+                
+                const wrapper = document.createElement('div');
+                wrapper.className = 'jar-wrapper';
+                
+                const label = document.createElement('div');
+                label.className = `jar-label ${feeling.class}`;
+                label.textContent = feeling.name;
+                
+                const jar = document.createElement('div');
+                jar.className = `jar ${feeling.class}`;
+                jar.id = `jar-${feeling.class}`;
+                
+                const count = document.createElement('div');
+                count.className = 'count';
+                count.id = `count-${feeling.class}`;
+                count.textContent = '0';
+                
+                const contents = document.createElement('div');
+                contents.className = 'jar-contents';
+                contents.id = `contents-${feeling.class}`;
+                
+                jar.appendChild(count);
+                jar.appendChild(contents);
+                wrapper.appendChild(label);
+                wrapper.appendChild(jar);
+                container.appendChild(wrapper);
+            });
+        }
+
+        function addBall(feelingClass) {
+            const contents = document.getElementById(`contents-${feelingClass}`);
+            const count = document.getElementById(`count-${feelingClass}`);
+            
+            if (!contents) return;
+            
+            const ball = document.createElement('div');
+            ball.className = 'ball';
+            
+            contents.appendChild(ball);
+            
+            jarCounts[feelingClass]++;
+            count.textContent = jarCounts[feelingClass];
+            
+            // Keep max 60 balls for performance
+            if (contents.children.length > 60) {
+                contents.removeChild(contents.firstChild);
+            }
+        }
+
+        function processChatCommand(message) {
+            const lowerMessage = message.toLowerCase().trim();
+            
+            feelings.forEach(feeling => {
+                if (lowerMessage === feeling.command) {
+                    addBall(feeling.class);
+                }
+            });
+        }
+
+        initializeJars();
+        window.processChatCommand = processChatCommand;
+        
+        // Listen for commands from control dashboard
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'streamCommand') {
+                try {
+                    const command = JSON.parse(e.newValue);
+                    if (command.widget === 'feelings') {
+                        handleDashboardCommand(command.command, command.data);
+                    }
+                } catch (err) {
+                    console.error('Error processing command:', err);
+                }
+            }
+        });
+        
+        function handleDashboardCommand(command, data) {
+            switch(command) {
+                case 'add':
+                    addBall(data);
+                    break;
+                case 'simulate':
+                    for (let i = 0; i < (data.count || 10); i++) {
+                        setTimeout(() => {
+                            const randomFeeling = feelings[Math.floor(Math.random() * feelings.length)];
+                            addBall(randomFeeling.class);
+                        }, i * 300);
+                    }
+                    break;
+                case 'clear':
+                    feelings.forEach(feeling => {
+                        const contents = document.getElementById(`contents-${feeling.class}`);
+                        const count = document.getElementById(`count-${feeling.class}`);
+                        if (contents) contents.innerHTML = '';
+                        if (count) {
+                            jarCounts[feeling.class] = 0;
+                            count.textContent = '0';
+                        }
+                    });
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
