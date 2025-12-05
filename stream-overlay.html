@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+    <title>Stream Overlay</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Base Reset & Setup */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            width: 1920px;
+            height: 1080px;
+            overflow: hidden;
+            background: transparent; /* Transparent for OBS */
+            font-family: 'Fredoka', sans-serif;
+            color: white;
+        }
+
+        /* Debug Background (Uncomment to see bounds in browser) */
+        /* body { background: #1a1a1a; background-image: radial-gradient(#2a2a2a 1px, transparent 1px); background-size: 20px 20px; } */
+
+        /* Main Grid */
+        .overlay-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 100%;
+            height: 100%;
+        }
+
+        .widget-cell {
+            position: relative;
+            padding: 10px;
+            /* border: 1px dashed rgba(255,255,255,0.1); Debug guide */
+        }
+
+        /* Common Widget Styles */
+        .widget-container {
+            width: 100%;
+            height: 100%;
+            background: rgba(16, 18, 27, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .widget-header {
+            padding: 8px 16px;
+            font-family: 'Bungee', cursive;
+            font-size: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            background: linear-gradient(90deg, rgba(255,255,255,0.05), transparent);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-content {
+            flex: 1;
+            padding: 8px;
+            position: relative;
+        }
+
+        /* FEELINGS & ZODIAC (6x2 Grid) */
+        .grid-6x2 {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 6px;
+            height: 100%;
+        }
+
+        /* ROLES (3x2 Grid) */
+        .grid-3x2 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 8px;
+            height: 100%;
+        }
+
+        /* Tiny Jars */
+        .mini-jar {
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .jar-label {
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 2px 0;
+            background: rgba(255,255,255,0.1);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 2;
+        }
+
+        .jar-count {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.6rem;
+            opacity: 0.8;
+            z-index: 3;
+        }
+
+        .jar-contents {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-end; /* Fills from bottom */
+            gap: 2px;
+            padding: 2px;
+            overflow: hidden;
+        }
+
+        /* Orbs/Balls */
+        .orb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            box-shadow: inset -2px -2px 4px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+            animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            flex-shrink: 0;
+        }
+
+        /* Role Orbs (Bigger) */
+        .role-orb {
+            width: 24px;
+            height: 24px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fff, #ccc);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            animation: dropIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        @keyframes dropIn {
+            0% { transform: translateY(-50px) scale(0); opacity: 0; }
+            70% { transform: translateY(5px) scale(1.1); opacity: 1; }
+            100% { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* TRIVIA WIDGET */
+        .trivia-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(20,20,30,0.8), rgba(10,10,20,0.95));
+        }
+
+        .trivia-screen {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+        .trivia-screen.active { display: flex; }
+
+        /* Trivia: Topics */
+        .topic-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        .topic-card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            position: relative;
+            transition: all 0.3s;
+        }
+        .topic-card.winner {
+            background: #00ff9d;
+            color: black;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0,255,157,0.4);
+        }
+        .vote-badge {
+            background: #ff0055;
+            color: white;
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+        }
+
+        /* Trivia: Question */
+        .question-text {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+        }
+        .answer-card {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.1);
+            position: relative;
+            transition: 0.3s;
+        }
+        .answer-card.correct {
+            background: #00ff9d;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0,255,157,0.4);
+        }
+        .answer-card.wrong {
+            opacity: 0.5;
+        }
+        .answer-key {
+            font-weight: bold;
+            margin-right: 10px;
+            color: #ff0055;
+        }
+        .answer-card.correct .answer-key { color: #000; }
+
+        /* Trivia: Leaderboard */
+        .leaderboard-list {
+            width: 100%;
+            max-height: 250px;
+            overflow-y: hidden;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 15px;
+            background: rgba(255,255,255,0.05);
+            margin-bottom: 5px;
+            border-radius: 6px;
+        }
+        .rank-1 { color: gold; font-weight: bold; }
+        .rank-2 { color: silver; font-weight: bold; }
+        .rank-3 { color: #cd7f32; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+<div class="overlay-grid">
+    <!-- TOP LEFT: FEELINGS -->
+    <div class="widget-cell">
+        <div class="widget-container" id="feelings-widget">
+            <div class="widget-header">
+                <span>Feelings Jar</span>
+                <span>✨</span>
+            </div>
+            <div class="widget-content">
+                <div class="grid-6x2" id="feelings-grid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOP MIDDLE: ZODIAC -->
+    <div class="widget-cell">
+        <div class="widget-container" id="zodiac-widget">
+            <div class="widget-header">
+                <span>Star Signs</span>
+                <span>🌙</span>
+            </div>
+            <div class="widget-content">
+                <div class="grid-6x2" id="zodiac-grid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOP RIGHT: ROLES -->
+    <div class="widget-cell">
+        <div class="widget-container" id="roles-widget">
+            <div class="widget-header">
+                <span>Creative Roles</span>
+                <span>🎨</span>
+            </div>
+            <div class="widget-content">
+                <div class="grid-3x2" id="roles-grid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIDDLE LEFT: TRIVIA -->
+    <div class="widget-cell">
+        <div class="widget-container trivia-container" id="trivia-widget">
+            <div class="widget-header" style="background: linear-gradient(90deg, #ff0055, #00ff9d);">
+                <span style="color:white; text-shadow: 2px 2px 0 #000;">AI TRIVIA</span>
+                <span id="trivia-status">WAITING...</span>
+            </div>
+
+            <!-- SCREEN 1: TOPICS -->
+            <div class="trivia-screen active" id="screen-topics">
+                <h2>Vote for a Topic!</h2>
+                <div class="topic-grid" id="topic-list">
+                    <!-- Generated Topics -->
+                </div>
+            </div>
+
+            <!-- SCREEN 2: QUESTION -->
+            <div class="trivia-screen" id="screen-question">
+                <div style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 10px;">QUESTION <span id="q-number">1</span>/10</div>
+                <div class="question-text" id="q-text">Loading...</div>
+                <div class="answers-grid" id="q-answers">
+                    <!-- Answers -->
+                </div>
+                <div id="q-timer" style="height: 4px; background: #00ff9d; width: 100%; margin-top: 20px; transition: width 1s linear;"></div>
+            </div>
+
+            <!-- SCREEN 3: LEADERBOARD -->
+            <div class="trivia-screen" id="screen-leaderboard">
+                <h2 style="margin-bottom: 20px;">Top Players</h2>
+                <div class="leaderboard-list" id="leaderboard-list">
+                    <!-- Ranks -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REST EMPTY -->
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+</div>
+
+<script>
+    // --- DATA & CONFIG ---
+    const FEELINGS = [
+        { id: 'happy', label: 'Happy', color: 'linear-gradient(135deg, #FFD700, #FFA500)' },
+        { id: 'sad', label: 'Sad', color: 'linear-gradient(135deg, #87CEEB, #4682B4)' },
+        { id: 'hype', label: 'Hype', color: 'linear-gradient(135deg, #FF4500, #FF0000)' },
+        { id: 'chill', label: 'Chill', color: 'linear-gradient(135deg, #98FB98, #3CB371)' },
+        { id: 'love', label: 'Love', color: 'linear-gradient(135deg, #FF69B4, #FF1493)' },
+        { id: 'angry', label: 'Angry', color: 'linear-gradient(135deg, #DC143C, #8B0000)' },
+        { id: 'scared', label: 'Scared', color: 'linear-gradient(135deg, #DDA0DD, #800080)' },
+        { id: 'sleepy', label: 'Sleepy', color: 'linear-gradient(135deg, #B0C4DE, #708090)' },
+        { id: 'confused', label: 'Confused', color: 'linear-gradient(135deg, #FFDAB9, #F4A460)' },
+        { id: 'laugh', label: 'Laugh', color: 'linear-gradient(135deg, #FFFF00, #FFD700)' },
+        { id: 'wow', label: 'Wow', color: 'linear-gradient(135deg, #00FFFF, #00CED1)' },
+        { id: 'gg', label: 'GG', color: 'linear-gradient(135deg, #FF00FF, #9400D3)' }
+    ];
+
+    const ZODIAC = [
+        { id: 'aries', label: 'Aries', symbol: '♈', color: '#FF0000' },
+        { id: 'taurus', label: 'Taurus', symbol: '♉', color: '#008000' },
+        { id: 'gemini', label: 'Gemini', symbol: '♊', color: '#FFFF00' },
+        { id: 'cancer', label: 'Cancer', symbol: '♋', color: '#C0C0C0' },
+        { id: 'leo', label: 'Leo', symbol: '♌', color: '#FFA500' },
+        { id: 'virgo', label: 'Virgo', symbol: '♍', color: '#808000' },
+        { id: 'libra', label: 'Libra', symbol: '♎', color: '#FFC0CB' },
+        { id: 'scorpio', label: 'Scorpio', symbol: '♏', color: '#800000' },
+        { id: 'sagittarius', label: 'Sagitt', symbol: '♐', color: '#800080' },
+        { id: 'capricorn', label: 'Capri', symbol: '♑', color: '#A52A2A' },
+        { id: 'aquarius', label: 'Aqua', symbol: '♒', color: '#00FFFF' },
+        { id: 'pisces', label: 'Pisces', symbol: '♓', color: '#0000FF' }
+    ];
+
+    const ROLES = [
+        { id: 'hitmaker', label: 'Hitmaker', emoji: '🎵', color: 'linear-gradient(135deg, #ff9966, #ff5e62)' },
+        { id: 'artist', label: 'Artist', emoji: '🎨', color: 'linear-gradient(135deg, #00c6ff, #0072ff)' },
+        { id: 'dev', label: 'Dev', emoji: '💻', color: 'linear-gradient(135deg, #a8ff78, #78ffd6)' },
+        { id: 'gamer', label: 'Gamer', emoji: '🎮', color: 'linear-gradient(135deg, #f093fb, #f5576c)' },
+        { id: 'mod', label: 'Mod', emoji: '🛡️', color: 'linear-gradient(135deg, #4facfe, #00f2fe)' },
+        { id: 'vip', label: 'VIP', emoji: '💎', color: 'linear-gradient(135deg, #fa709a, #fee140)' }
+    ];
+
+    // --- STATE ---
+    const state = {
+        feelings: {},
+        zodiac: {},
+        roles: {},
+        trivia: {
+            topics: [],
+            votes: {},
+            activeTopic: null,
+            questions: [],
+            currentQIndex: 0,
+            leaderboard: {}, // user: score
+            phase: 'topics' // topics, question, leaderboard
+        }
+    };
+
+    // --- INIT ---
+    function init() {
+        // Init Feelings
+        const fGrid = document.getElementById('feelings-grid');
+        FEELINGS.forEach(f => {
+            const jar = createJar(f.id, f.label);
+            fGrid.appendChild(jar);
+            state.feelings[f.id] = 0;
+        });
+
+        // Init Zodiac
+        const zGrid = document.getElementById('zodiac-grid');
+        ZODIAC.forEach(z => {
+            const jar = createJar(z.id, `${z.symbol} ${z.label}`);
+            zGrid.appendChild(jar);
+            state.zodiac[z.id] = 0;
+        });
+
+        // Init Roles
+        const rGrid = document.getElementById('roles-grid');
+        ROLES.forEach(r => {
+            const jar = createJar(r.id, `${r.emoji} ${r.label}`);
+            rGrid.appendChild(jar);
+            state.roles[r.id] = 0;
+        });
+
+        // Initial Topics Generation
+        generateTriviaTopics();
+    }
+
+    function createJar(id, labelText) {
+        const div = document.createElement('div');
+        div.className = 'mini-jar';
+        div.id = `jar-${id}`;
+        div.innerHTML = `
+            <div class="jar-label">${labelText}</div>
+            <div class="jar-count" id="count-${id}">0</div>
+            <div class="jar-contents" id="contents-${id}"></div>
+        `;
+        return div;
+    }
+
+    // --- ANIMATION HELPERS ---
+    function addFeeling(id) {
+        if (!state.feelings.hasOwnProperty(id)) return;
+        state.feelings[id]++;
+        updateCount(id, state.feelings[id]);
+
+        const f = FEELINGS.find(x => x.id === id);
+        const el = document.createElement('div');
+        el.className = 'orb';
+        el.style.background = f.color;
+
+        const container = document.getElementById(`contents-${id}`);
+        // Limit items to prevent crash
+        if (container.children.length > 60) container.removeChild(container.firstChild);
+        container.appendChild(el);
+    }
+
+    function addZodiac(id) {
+        if (!state.zodiac.hasOwnProperty(id)) return;
+        state.zodiac[id]++;
+        updateCount(id, state.zodiac[id]);
+
+        const z = ZODIAC.find(x => x.id === id);
+        const el = document.createElement('div');
+        el.className = 'orb';
+        el.style.background = z.color;
+        el.style.boxShadow = `0 0 5px ${z.color}`;
+        el.style.borderRadius = '2px'; // Star-ish
+        el.style.transform = 'rotate(45deg)';
+
+        const container = document.getElementById(`contents-${id}`);
+        if (container.children.length > 60) container.removeChild(container.firstChild);
+        container.appendChild(el);
+    }
+
+    function addRole(id) {
+        if (!state.roles.hasOwnProperty(id)) return;
+        state.roles[id]++;
+        updateCount(id, state.roles[id]);
+
+        const r = ROLES.find(x => x.id === id);
+        const el = document.createElement('div');
+        el.className = 'role-orb';
+        el.style.background = r.color;
+        el.innerHTML = r.emoji;
+
+        const container = document.getElementById(`contents-${id}`);
+        if (container.children.length > 20) container.removeChild(container.firstChild);
+        container.appendChild(el);
+    }
+
+    function updateCount(id, count) {
+        const el = document.getElementById(`count-${id}`);
+        if(el) el.innerText = count;
+    }
+
+    function clearWidget(widget) {
+        if (widget === 'feelings') {
+            FEELINGS.forEach(f => { state.feelings[f.id] = 0; document.getElementById(`contents-${f.id}`).innerHTML = ''; updateCount(f.id, 0); });
+        } else if (widget === 'zodiac') {
+            ZODIAC.forEach(z => { state.zodiac[z.id] = 0; document.getElementById(`contents-${z.id}`).innerHTML = ''; updateCount(z.id, 0); });
+        } else if (widget === 'roles') {
+            ROLES.forEach(r => { state.roles[r.id] = 0; document.getElementById(`contents-${r.id}`).innerHTML = ''; updateCount(r.id, 0); });
+        }
+    }
+
+    // --- TRIVIA LOGIC ---
+
+    async function generateTriviaTopics() {
+        state.trivia.phase = 'topics';
+        state.trivia.votes = {};
+        updateTriviaUI();
+
+        document.getElementById('trivia-status').innerText = 'GENERATING TOPICS...';
+
+        let topics = [];
+        try {
+            // Attempt AI Call
+            const res = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'x-api-key': 'YOUR_KEY_HERE_IF_NEEDED' }, // Won't work without key
+                body: JSON.stringify({
+                    model: 'claude-sonnet-4-20250514', // Hypothetical model from prompt
+                    max_tokens: 1000,
+                    messages: [{ role: 'user', content: 'Generate 8 fun trivia topics as JSON array strings only' }]
+                })
+            });
+            if (!res.ok) throw new Error("API Failed");
+            const data = await res.json();
+            // Parse logic would go here
+            topics = ["Failed API", "Using Fallback"];
+        } catch (e) {
+            // Fallback Mock Data
+            console.log("Using Mock Topics");
+            topics = [
+                "80s Pop Culture", "Space Oddities", "Video Game History",
+                "Weird Science", "Cat Facts", "Cyberpunk Lore",
+                "Food Origins", "Internet Memes"
+            ];
+            // Shuffle
+            topics = topics.sort(() => Math.random() - 0.5);
+        }
+
+        state.trivia.topics = topics;
+        document.getElementById('trivia-status').innerText = 'VOTE NOW: !vote 1-8';
+        renderTopics();
+
+        // Signal dashboard that topics are ready
+        localStorage.setItem('triviaState', JSON.stringify({ status: 'topics_ready', topics: topics }));
+    }
+
+    function renderTopics() {
+        const list = document.getElementById('topic-list');
+        list.innerHTML = '';
+        state.trivia.topics.forEach((t, i) => {
+            const div = document.createElement('div');
+            div.className = 'topic-card';
+            div.id = `topic-${i+1}`;
+            div.innerHTML = `
+                ${i+1}. ${t}
+                <div class="vote-badge" id="vote-count-${i+1}">0</div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function voteTopic(idx) {
+        if (state.trivia.phase !== 'topics') return;
+        if (idx < 1 || idx > 8) return;
+        state.trivia.votes[idx] = (state.trivia.votes[idx] || 0) + 1;
+        document.getElementById(`vote-count-${idx}`).innerText = state.trivia.votes[idx];
+    }
+
+    async function startTriviaGame() {
+        if (!state.trivia.topics || state.trivia.topics.length === 0) {
+            console.warn("No topics available to start game.");
+            return;
+        }
+
+        // Determine Winner
+        let winnerIdx = 1;
+        let maxVotes = -1;
+        for (let i=1; i<=8; i++) {
+            const v = state.trivia.votes[i] || 0;
+            if (v > maxVotes) { maxVotes = v; winnerIdx = i; }
+        }
+        state.trivia.activeTopic = state.trivia.topics[winnerIdx-1];
+
+        // Highlight Winner
+        const card = document.getElementById(`topic-${winnerIdx}`);
+        if(card) card.classList.add('winner');
+
+        document.getElementById('trivia-status').innerText = 'GENERATING QUESTIONS...';
+
+        // Generate Questions (Mock)
+        await new Promise(r => setTimeout(r, 1500)); // Fake loading
+        state.trivia.questions = generateMockQuestions(state.trivia.activeTopic);
+
+        state.trivia.phase = 'question';
+        state.trivia.currentQIndex = 0;
+        showQuestion();
+    }
+
+    function generateMockQuestions(topic) {
+        // Generate 10 generic questions for demo
+        return Array(10).fill(0).map((_, i) => ({
+            text: `Question ${i+1} about ${topic}: What is the answer?`,
+            answers: ['Option A', 'Option B', 'Option C', 'Option D'],
+            correct: Math.floor(Math.random() * 4) // 0-3
+        }));
+    }
+
+    function showQuestion() {
+        updateTriviaUI();
+        const q = state.trivia.questions[state.trivia.currentQIndex];
+        document.getElementById('q-number').innerText = state.trivia.currentQIndex + 1;
+        document.getElementById('q-text').innerText = q.text;
+
+        const grid = document.getElementById('q-answers');
+        grid.innerHTML = '';
+        ['A','B','C','D'].forEach((letter, i) => {
+            const div = document.createElement('div');
+            div.className = 'answer-card';
+            div.id = `ans-${i}`;
+            div.innerHTML = `<span class="answer-key">${letter}</span> ${q.answers[i]}`;
+            grid.appendChild(div);
+        });
+        document.getElementById('trivia-status').innerText = 'ANSWER NOW: !a/b/c/d';
+    }
+
+    function revealAnswer() {
+        const q = state.trivia.questions[state.trivia.currentQIndex];
+        const correctIdx = q.correct;
+
+        for(let i=0; i<4; i++) {
+            const card = document.getElementById(`ans-${i}`);
+            if(i === correctIdx) card.classList.add('correct');
+            else card.classList.add('wrong');
+        }
+        document.getElementById('trivia-status').innerText = 'ANSWER REVEALED';
+    }
+
+    function nextQuestion() {
+        if (state.trivia.currentQIndex < 9) {
+            state.trivia.currentQIndex++;
+            showQuestion();
+        } else {
+            showLeaderboard();
+        }
+    }
+
+    function showLeaderboard() {
+        state.trivia.phase = 'leaderboard';
+        updateTriviaUI();
+        const list = document.getElementById('leaderboard-list');
+        list.innerHTML = '';
+
+        // Mock Leaderboard
+        const mockUsers = Object.keys(state.trivia.leaderboard).length > 0
+            ? Object.entries(state.trivia.leaderboard)
+            : [['User1', 500], ['User2', 450], ['User3', 300]];
+
+        mockUsers.sort((a,b) => b[1] - a[1]).slice(0, 10).forEach((u, i) => {
+            const div = document.createElement('div');
+            div.className = 'leaderboard-item';
+            div.innerHTML = `
+                <span class="${i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':''}">${i+1}. ${u[0]}</span>
+                <span>${u[1]} pts</span>
+            `;
+            list.appendChild(div);
+        });
+        document.getElementById('trivia-status').innerText = 'GAME OVER';
+    }
+
+    function updateTriviaUI() {
+        document.getElementById('screen-topics').classList.remove('active');
+        document.getElementById('screen-question').classList.remove('active');
+        document.getElementById('screen-leaderboard').classList.remove('active');
+
+        if (state.trivia.phase === 'topics') document.getElementById('screen-topics').classList.add('active');
+        else if (state.trivia.phase === 'question') document.getElementById('screen-question').classList.add('active');
+        else if (state.trivia.phase === 'leaderboard') document.getElementById('screen-leaderboard').classList.add('active');
+    }
+
+    // --- COMMUNICATION ---
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'streamCommand') {
+            const cmd = JSON.parse(e.newValue);
+            handleCommand(cmd);
+        }
+    });
+
+    function handleCommand(cmd) {
+        if (cmd.widget === 'feelings') {
+            if (cmd.command === 'add') addFeeling(cmd.data);
+            if (cmd.command === 'clear') clearWidget('feelings');
+        }
+        if (cmd.widget === 'zodiac') {
+            if (cmd.command === 'add') addZodiac(cmd.data);
+            if (cmd.command === 'clear') clearWidget('zodiac');
+        }
+        if (cmd.widget === 'roles') {
+            if (cmd.command === 'add') addRole(cmd.data);
+            if (cmd.command === 'clear') clearWidget('roles');
+        }
+        if (cmd.widget === 'trivia') {
+            if (cmd.command === 'generate') generateTriviaTopics();
+            if (cmd.command === 'start') startTriviaGame();
+            if (cmd.command === 'reveal') revealAnswer();
+            if (cmd.command === 'next') nextQuestion();
+            if (cmd.command === 'vote') voteTopic(parseInt(cmd.data));
+            if (cmd.command === 'answer') {
+                // Simulate receiving an answer from a user (for manual control)
+                // Just logs it for now, real logic would track score
+                console.log("Manual Answer:", cmd.data);
+            }
+        }
+    }
+
+    // Chat Interface
+    window.processChatCommand = (username, message) => {
+        if (!message.startsWith('!')) return;
+        const args = message.slice(1).toLowerCase().split(' ');
+        const cmd = args[0];
+
+        // Feelings
+        if (FEELINGS.some(f => f.id === cmd)) addFeeling(cmd);
+
+        // Zodiac
+        if (ZODIAC.some(z => z.id === cmd)) addZodiac(cmd);
+
+        // Roles
+        if (ROLES.some(r => r.id === cmd)) addRole(cmd);
+
+        // Trivia Vote
+        if (cmd === 'vote' && args[1]) voteTopic(parseInt(args[1]));
+
+        // Trivia Answer
+        if (['a','b','c','d'].includes(cmd)) {
+            // Record answer for user (simple logic)
+            if (state.trivia.phase === 'question') {
+                const letterMap = {'a':0, 'b':1, 'c':2, 'd':3};
+                const picked = letterMap[cmd];
+                const currentQ = state.trivia.questions[state.trivia.currentQIndex];
+                if (picked === currentQ.correct) {
+                     state.trivia.leaderboard[username] = (state.trivia.leaderboard[username] || 0) + 100;
+                }
+            }
+        }
+    };
+
+    // --- START ---
+    init();
+
+</script>
+</body>
+</html>
