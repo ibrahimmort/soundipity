@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stream Control Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #121212;
+            --surface: #1e1e1e;
+            --primary: #bb86fc;
+            --secondary: #03dac6;
+            --error: #cf6679;
+            --text: #e0e0e0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 20px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #00ff00;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            box-shadow: 0 0 8px #00ff00;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 20px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .panel {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        select, input {
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: white;
+            flex: 1;
+        }
+
+        button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            background: #333;
+            color: white;
+        }
+        button:hover { background: #444; transform: translateY(-1px); }
+        button:active { transform: translateY(0); }
+
+        button.primary { background: var(--primary); color: black; }
+        button.secondary { background: var(--secondary); color: black; }
+        button.danger { background: var(--error); color: black; }
+
+        .btn-full { width: 100%; margin-top: 5px; }
+
+        .trivia-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .status-log {
+            font-family: monospace;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 5px;
+        }
+
+        /* Quick Actions Bar */
+        .quick-actions {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Stream Control Dashboard</h1>
+    <div>
+        <span class="status-dot"></span> Live Ready
+    </div>
+</header>
+
+<div class="dashboard-grid">
+    <!-- FEELINGS CONTROL -->
+    <div class="panel">
+        <h2>Feelings Jar</h2>
+        <div class="control-group">
+            <select id="feelings-select">
+                <option value="happy">Happy</option>
+                <option value="sad">Sad</option>
+                <option value="hype">Hype</option>
+                <option value="chill">Chill</option>
+                <option value="love">Love</option>
+                <option value="angry">Angry</option>
+                <option value="scared">Scared</option>
+                <option value="sleepy">Sleepy</option>
+                <option value="confused">Confused</option>
+                <option value="laugh">Laugh</option>
+                <option value="wow">Wow</option>
+                <option value="gg">GG</option>
+            </select>
+            <button onclick="sendCommand('feelings', 'add', document.getElementById('feelings-select').value)">Add</button>
+        </div>
+        <button class="secondary btn-full" onclick="simulate('feelings', 15)">Simulate Chat (Rain 15)</button>
+        <button class="danger btn-full" onclick="sendCommand('feelings', 'clear')">Clear All</button>
+    </div>
+
+    <!-- ZODIAC CONTROL -->
+    <div class="panel">
+        <h2>Zodiac Signs</h2>
+        <div class="control-group">
+            <select id="zodiac-select">
+                <option value="aries">Aries</option>
+                <option value="taurus">Taurus</option>
+                <option value="gemini">Gemini</option>
+                <option value="cancer">Cancer</option>
+                <option value="leo">Leo</option>
+                <option value="virgo">Virgo</option>
+                <option value="libra">Libra</option>
+                <option value="scorpio">Scorpio</option>
+                <option value="sagittarius">Sagittarius</option>
+                <option value="capricorn">Capricorn</option>
+                <option value="aquarius">Aquarius</option>
+                <option value="pisces">Pisces</option>
+            </select>
+            <button onclick="sendCommand('zodiac', 'add', document.getElementById('zodiac-select').value)">Add</button>
+        </div>
+        <button class="secondary btn-full" onclick="simulate('zodiac', 15)">Simulate Chat (Rain 15)</button>
+        <button class="danger btn-full" onclick="sendCommand('zodiac', 'clear')">Clear All</button>
+    </div>
+
+    <!-- ROLES CONTROL -->
+    <div class="panel">
+        <h2>Creative Roles</h2>
+        <div class="control-group">
+            <select id="roles-select">
+                <option value="hitmaker">Hitmaker</option>
+                <option value="artist">Artist</option>
+                <option value="dev">Dev</option>
+                <option value="gamer">Gamer</option>
+                <option value="mod">Mod</option>
+                <option value="vip">VIP</option>
+            </select>
+            <button onclick="sendCommand('roles', 'add', document.getElementById('roles-select').value)">Add</button>
+        </div>
+        <button class="secondary btn-full" onclick="simulate('roles', 12)">Simulate Chat (Rain 12)</button>
+        <button class="danger btn-full" onclick="sendCommand('roles', 'clear')">Clear All</button>
+    </div>
+
+    <!-- TRIVIA CONTROL -->
+    <div class="panel">
+        <h2>AI Trivia Game</h2>
+        <div class="trivia-controls">
+            <button class="primary" onclick="sendCommand('trivia', 'generate')">1. Generate Topics</button>
+            <div class="control-group">
+                <input type="number" id="vote-topic-id" placeholder="Topic #" min="1" max="8">
+                <button onclick="sendCommand('trivia', 'vote', document.getElementById('vote-topic-id').value)">Vote</button>
+            </div>
+            <button class="secondary" onclick="simulateVotes()">Simulate Votes (Random)</button>
+
+            <button class="primary" id="btn-start-game" onclick="sendCommand('trivia', 'start')">2. Start Game (Pick Winner)</button>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+                 <button onclick="sendCommand('trivia', 'reveal')">Reveal Answer</button>
+                 <button onclick="sendCommand('trivia', 'next')">Next Question</button>
+            </div>
+        </div>
+        <div class="status-log" id="trivia-log">Waiting for topics...</div>
+    </div>
+</div>
+
+<div class="quick-actions">
+    <button class="secondary" onclick="testEverything()">Test Everything</button>
+    <button class="danger" onclick="clearEverything()">Clear Everything</button>
+</div>
+
+<script>
+    function sendCommand(widget, command, data = null) {
+        const payload = { widget, command, data, timestamp: Date.now() };
+        localStorage.setItem('streamCommand', JSON.stringify(payload));
+        // Visual feedback
+        console.log("Sent:", payload);
+    }
+
+    function simulate(widget, count) {
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i >= count) { clearInterval(interval); return; }
+
+            let options = [];
+            if (widget === 'feelings') options = ['happy','sad','hype','chill','love','angry','scared','sleepy','confused','laugh','wow','gg'];
+            if (widget === 'zodiac') options = ['aries','taurus','gemini','cancer','leo','virgo','libra','scorpio','sagittarius','capricorn','aquarius','pisces'];
+            if (widget === 'roles') options = ['hitmaker','artist','dev','gamer','mod','vip'];
+
+            const randomOption = options[Math.floor(Math.random() * options.length)];
+            sendCommand(widget, 'add', randomOption);
+            i++;
+        }, 100);
+    }
+
+    function simulateVotes() {
+        let i = 0;
+        const interval = setInterval(() => {
+            if (i >= 15) { clearInterval(interval); return; }
+            const randomVote = Math.floor(Math.random() * 8) + 1;
+            sendCommand('trivia', 'vote', randomVote);
+            i++;
+        }, 100);
+    }
+
+    function clearEverything() {
+        sendCommand('feelings', 'clear');
+        sendCommand('zodiac', 'clear');
+        sendCommand('roles', 'clear');
+    }
+
+    function testEverything() {
+        simulate('feelings', 10);
+        simulate('zodiac', 10);
+        simulate('roles', 5);
+        simulateVotes();
+    }
+
+    // Listen for Trivia Status updates from Overlay
+    window.addEventListener('storage', (e) => {
+        if (e.key === 'triviaState') {
+            const state = JSON.parse(e.newValue);
+            const log = document.getElementById('trivia-log');
+            if (state.status === 'topics_ready') {
+                log.innerText = "Topics Generated! Ready to Start.";
+                log.style.color = '#00ff00';
+            }
+        }
+    });
+
+</script>
+</body>
+</html>
