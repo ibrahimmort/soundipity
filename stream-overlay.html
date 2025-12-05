@@ -23,46 +23,16 @@
         /* Main Grid */
         .overlay-grid {
             display: grid;
-            /* 3x3 Grid, but center column/row are larger for the 'circle' area */
-            grid-template-columns: 1fr 1.2fr 1fr;
-            grid-template-rows: 1fr 1.2fr 1fr;
-            grid-template-areas:
-                "feelings empty1 zodiac"
-                "empty2 center empty3"
-                "trivia empty4 roles";
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
             width: 100%;
             height: 100%;
-            padding: 20px;
-            gap: 20px;
-        }
-
-        /* Widget Placement */
-        #cell-feelings { grid-area: feelings; }
-        #cell-zodiac { grid-area: zodiac; }
-        #cell-trivia { grid-area: trivia; }
-        #cell-roles { grid-area: roles; }
-
-        /* Central Circle Area (Visual Guide - transparent) */
-        .center-circle {
-            grid-area: center;
-            border-radius: 50%;
-            border: 2px dashed rgba(255,255,255,0.1);
-            position: relative;
-        }
-        .center-circle::after {
-            content: "CAM / GAME";
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: rgba(255,255,255,0.1);
-            font-weight: bold;
-            font-size: 2rem;
         }
 
         .widget-cell {
             position: relative;
-            padding: 0;
-            height: 100%;
+            padding: 10px;
+            /* border: 1px dashed rgba(255,255,255,0.1); Debug guide */
         }
 
         /* Common Widget Styles */
@@ -302,7 +272,7 @@
 
 <div class="overlay-grid">
     <!-- TOP LEFT: FEELINGS -->
-    <div class="widget-cell" id="cell-feelings">
+    <div class="widget-cell">
         <div class="widget-container" id="feelings-widget">
             <div class="widget-header">
                 <span>Feelings Jar</span>
@@ -316,8 +286,8 @@
         </div>
     </div>
 
-    <!-- TOP RIGHT: ZODIAC (Moved from Middle) -->
-    <div class="widget-cell" id="cell-zodiac">
+    <!-- TOP MIDDLE: ZODIAC -->
+    <div class="widget-cell">
         <div class="widget-container" id="zodiac-widget">
             <div class="widget-header">
                 <span>Star Signs</span>
@@ -331,8 +301,23 @@
         </div>
     </div>
 
-    <!-- BOTTOM LEFT: TRIVIA (Moved from Mid-Left) -->
-    <div class="widget-cell" id="cell-trivia">
+    <!-- TOP RIGHT: ROLES -->
+    <div class="widget-cell">
+        <div class="widget-container" id="roles-widget">
+            <div class="widget-header">
+                <span>Creative Roles</span>
+                <span>🎨</span>
+            </div>
+            <div class="widget-content">
+                <div class="grid-3x2" id="roles-grid">
+                    <!-- Filled by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MIDDLE LEFT: TRIVIA -->
+    <div class="widget-cell">
         <div class="widget-container trivia-container" id="trivia-widget">
             <div class="widget-header" style="background: linear-gradient(90deg, #ff0055, #00ff9d);">
                 <span style="color:white; text-shadow: 2px 2px 0 #000;">AI TRIVIA</span>
@@ -367,23 +352,12 @@
         </div>
     </div>
 
-    <!-- BOTTOM RIGHT: ROLES (Moved from Top Right) -->
-    <div class="widget-cell" id="cell-roles">
-        <div class="widget-container" id="roles-widget">
-            <div class="widget-header">
-                <span>Creative Roles</span>
-                <span>🎨</span>
-            </div>
-            <div class="widget-content">
-                <div class="grid-3x2" id="roles-grid">
-                    <!-- Filled by JS -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Center Circle (Visual Guide) -->
-    <div class="center-circle"></div>
+    <!-- REST EMPTY -->
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
+    <div class="widget-cell"></div>
 </div>
 
 <script>
